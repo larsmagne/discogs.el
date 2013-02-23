@@ -24,8 +24,10 @@
 	 (format "http://api.discogs.com/%s/%s"
 		 object identifier))
       (goto-char (point-min))
-      (when (re-search-forward "\r?\n\r?\n" nil t)
-	(json-read)))))
+      (prog1
+	  (when (re-search-forward "\r?\n\r?\n" nil t)
+	    (json-read))
+	(kill-buffer (current-buffer))))))
 
 (defun discogs-search (artist title)
   (discogs-query
