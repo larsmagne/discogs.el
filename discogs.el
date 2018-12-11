@@ -22,15 +22,18 @@
 (defvar discogs-consumer-secret nil
   "Get the secret at discogs.com.")
 
-(defun discogs-query (object identifier)
+(defun discogs-query (object identifier &optional auth)
   (let ((url-request-extra-headers
 	 '(("User-Agent" . "discogs.el/1.0 +http://lars.ingebrigtsen.no/"))))
     (with-current-buffer
 	(url-retrieve-synchronously
-	 (format "https://api.discogs.com/%s/%s&key=%s&secret=%s"
+	 (format "https://api.discogs.com/%s/%s%s"
 		 object identifier
-		 discogs-consumer-key
-		 discogs-consumer-secret))
+		 (if auth
+		     (format "&key=%s&secret=%s"
+			     discogs-consumer-key
+			     discogs-consumer-secret)
+		   "")))
       (goto-char (point-min))
       (prog1
 	  (when (re-search-forward "\r?\n\r?\n" nil t)
@@ -45,8 +48,10 @@
 	title (discogs-clean title))
   (let ((results
 	 (discogs-query
-	  "database" (format "search?type=master&artist=%s&release_title=%s"
-			     artist title))))
+	  "database"
+	  (format "search?type=master&artist=%s&release_title=%s"
+		  artist title)
+	  t)))
     (if (plusp (length (cdr (assoc 'results results))))
 	results
       ;; Rate-limit to the API limit.
@@ -60,5 +65,17 @@
 	for year = (cdr (assq 'year release))
 	when year
 	minimize (string-to-number year)))
+
+(defun discogs-find-tracklist (artist title)
+  (let* ((id
+	  (loop for release across (cdr (assq 'results (discogs-search artist title)))
+		when (equal (cdr (assq 'type release)) "master")
+		return (cdr (assq 'id release))))
+	 (data (discogs-query "masters" id)))
+    (loop for track across (cdr (assq 'tracklist data))
+	  collect (cdr (assq 'title track)))))
+
+(defun discogs-release-data (id)
+  (discogs-query "masters" id))
 
 (provide 'discogs)
