@@ -56,11 +56,9 @@
 			  artist title)))))
 
 (defun discogs-find-year (artist title)
-  (let ((data (discogs-search artist title)))
-    (when (eq (caar data) 'results)
-      (loop for release across (cdar data)
-	    for year = (cdr (assq 'year release))
-	    when year
-	    minimize (string-to-number year)))))
+  (loop for release across (cdr (assq 'results (discogs-search artist title)))
+	for year = (cdr (assq 'year release))
+	when year
+	minimize (string-to-number year)))
 
 (provide 'discogs)
