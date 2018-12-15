@@ -79,8 +79,22 @@
 		  when (equal (cdr (assq 'type release)) "release")
 		  return (cdr (assq 'id release))))
       (setq data (discogs-query "releases" id)))
-    (loop for track across (cdr (assq 'tracklist data))
-	  collect (cdr (assq 'title track)))))
+    (let ((tracks
+	   (loop for track across (cdr (assq 'tracklist data))
+		 collect (cons
+			  (mapconcat
+			   'identity
+			   (loop for artist across (cdr (assq 'artists track))
+				 collect (cdr (assq 'name artist)))
+			   ", ")
+			  (cdr (assq 'title track))))))
+      (if (= (length (delete-duplicates
+		      (mapcar #'car tracks)
+		      :test #'equal))
+	     1)
+	  (mapcar #'cdr tracks)
+	(loop for elem in tracks
+	      collect (format "%s / %s" (car elem) (cdr elem)))))))
 
 (defun discogs-release-data (id)
   (discogs-query "masters" id))
