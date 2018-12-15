@@ -49,16 +49,16 @@
   (let ((results
 	 (discogs-query
 	  "database"
-	  (format "search?type=master&artist=%s&release_title=%s"
-		  artist title)
+	  (format "search?type=master&artist=%s&release_title=%s" artist title)
 	  t)))
     (if (plusp (length (cdr (assoc 'results results))))
 	results
       ;; Rate-limit to the API limit.
       (sleep-for 1)
       (discogs-query
-       "database" (format "search?type=release&q=%s %s"
-			  artist title)))))
+       "database"
+       (format "search?type=release&q=%s %s" artist title)
+       t))))
 
 (defun discogs-find-year (artist title)
   (loop for release across (cdr (assq 'results (discogs-search artist title)))
