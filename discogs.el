@@ -79,7 +79,6 @@
 		  when (equal (cdr (assq 'type release)) "release")
 		  return (cdr (assq 'id release))))
       (setq data (discogs-query "releases" id)))
-    (debug)
     (loop for track across (cdr (assq 'tracklist data))
 	  collect (cdr (assq 'title track)))))
 
