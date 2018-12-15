@@ -92,7 +92,9 @@
 		      (mapcar #'car tracks)
 		      :test #'equal))
 	     1)
+	  ;; If there's just one band, then return only track names.
 	  (mapcar #'cdr tracks)
+	;; If there's more, return Band / Track.
 	(loop for elem in tracks
 	      collect (format "%s / %s" (car elem) (cdr elem)))))))
 
