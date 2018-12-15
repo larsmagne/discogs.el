@@ -67,11 +67,19 @@
 	minimize (string-to-number year)))
 
 (defun discogs-find-tracklist (artist title)
-  (let* ((id
-	  (loop for release across (cdr (assq 'results (discogs-search artist title)))
+  (let* ((search (cdr (assq 'results (discogs-search artist title))))
+	 (id
+	  (loop for release across search
 		when (equal (cdr (assq 'type release)) "master")
 		return (cdr (assq 'id release))))
-	 (data (discogs-query "masters" id)))
+	 (data (and id (discogs-query "masters" id))))
+    (unless data
+      (setq id
+	    (loop for release across search
+		  when (equal (cdr (assq 'type release)) "release")
+		  return (cdr (assq 'id release))))
+      (setq data (discogs-query "releases" id)))
+    (debug)
     (loop for track across (cdr (assq 'tracklist data))
 	  collect (cdr (assq 'title track)))))
 
