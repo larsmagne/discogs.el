@@ -11,6 +11,18 @@
 
 ;;; Commentary:
 
+;; To use this, you need an account at discogs.com, and you then have
+;; to register an application here:
+
+;; https://www.discogs.com/settings/developers
+
+;; You'll then get a consumer key and secret pair, and you set the
+;; variables below to those two values.  You should then be able to
+;; say
+
+;; (discogs-find-tracklist "xiu xiu" "knife play")
+;; => ("Don Diasco" "I Broke Up (SJ)" "Luber" "Hives Hives" "Dr. Troll" "Over Over" "Anne Dong" "Suha" "Poe Poe" "Homonculus" "Tonite And Today (What Chu' Talkin' About)")
+
 ;;; Code:
 
 (require 'cl)
