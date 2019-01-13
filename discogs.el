@@ -97,7 +97,8 @@
 			  (mapconcat
 			   'identity
 			   (loop for artist across (cdr (assq 'artists track))
-				 collect (cdr (assq 'name artist)))
+				 collect (discogs-clean-artist-name
+					  (cdr (assq 'name artist))))
 			   ", ")
 			  (cdr (assq 'title track))))))
       (if (= (length (delete-duplicates
@@ -109,6 +110,9 @@
 	;; If there's more, return Band / Track.
 	(loop for elem in tracks
 	      collect (format "%s / %s" (car elem) (cdr elem)))))))
+
+(defun discogs-clean-artist-name (artist)
+  (replace-regexp-in-string " +([0-9]+)$" "" artist))
 
 (defun discogs-release-data (id)
   (discogs-query "masters" id))
