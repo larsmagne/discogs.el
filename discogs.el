@@ -96,6 +96,7 @@
 (defun discogs-collect-tracklist (data)
   (let ((tracks
 	 (loop for track across (cdr (assq 'tracklist data))
+	       unless (equal (cdr (assq 'type_ track)) "heading")
 	       collect (cons
 			(mapconcat
 			 'identity
@@ -148,7 +149,6 @@
 	(if (not choice)
 	    nil
 	  (discogs-collect-tracklist
-	   (setq data (discogs-query "releases"
-				     (cdr (assoc choice entries))))))))))
+	   (discogs-query "releases" (cdr (assoc choice entries)))))))))
 
 (provide 'discogs)
