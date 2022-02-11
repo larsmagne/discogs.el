@@ -78,6 +78,18 @@
 	when year
 	minimize (string-to-number year)))
 
+(defun discogs-find-genre (artist title)
+  (loop for release across (cdr (assq 'results (discogs-search artist title)))
+	for style = (append (cdr (assq 'style release))
+			    (let ((genre (cdr (assq 'genre release))))
+			      (when genre
+				(cl-coerce genre 'list)))
+			    (let ((label (cdr (assq 'label release))))
+			      (when label
+				(cl-coerce label 'list))))
+	when style
+	return style))
+
 (defun discogs-find-tracklist (artist title)
   (let* ((search (cdr (assq 'results (discogs-search artist title))))
 	 (id
@@ -129,7 +141,9 @@
 	       (cdr (assq 'results
 			  (discogs-query
 			   "database"
-			   (format "search?type=release&q=%s %s" artist title)
+			   (format "search?type=release&q=%s %s"
+				   (url-hexify-string artist)
+				   (url-hexify-string title))
 			   t)))
 	       when (equal (cdr (assq 'type release)) "release")
 	       collect release)))
