@@ -73,50 +73,53 @@
        t))))
 
 (defun discogs-find-year (artist title)
-  (loop for release across (cdr (assq 'results (discogs-search artist title)))
-	for year = (cdr (assq 'year release))
-	when year
-	minimize (string-to-number year)))
+  (cl-loop for release across (cdr (assq 'results
+					 (discogs-search artist title)))
+	   for year = (cdr (assq 'year release))
+	   when year
+	   minimize (string-to-number year)))
 
 (defun discogs-find-genre (artist title)
-  (loop for release across (cdr (assq 'results (discogs-search artist title)))
-	for style = (append (cdr (assq 'style release))
-			    (let ((genre (cdr (assq 'genre release))))
-			      (when genre
-				(cl-coerce genre 'list)))
-			    (let ((label (cdr (assq 'label release))))
-			      (when label
-				(cl-coerce label 'list))))
-	when style
-	return style))
+  (cl-loop for release across (cdr (assq 'results
+					 (discogs-search artist title)))
+	   for style = (append (cdr (assq 'style release))
+			       (let ((genre (cdr (assq 'genre release))))
+				 (when genre
+				   (cl-coerce genre 'list)))
+			       (let ((label (cdr (assq 'label release))))
+				 (when label
+				   (cl-coerce label 'list))))
+	   when style
+	   return style))
 
 (defun discogs-find-tracklist (artist title)
-  (let* ((search (cdr (assq 'results (discogs-search artist title))))
+  (let* ((cl-search (cdr (assq 'results (discogs-search artist title))))
 	 (id
-	  (loop for release across search
-		when (equal (cdr (assq 'type release)) "master")
-		return (cdr (assq 'id release))))
+	  (cl-loop for release across search
+		   when (equal (cdr (assq 'type release)) "master")
+		   return (cdr (assq 'id release))))
 	 (data (and id (discogs-query "masters" id))))
     (unless data
       (setq id
-	    (loop for release across search
-		  when (equal (cdr (assq 'type release)) "release")
-		  return (cdr (assq 'id release))))
+	    (cl-loop for release across search
+		     when (equal (cdr (assq 'type release)) "release")
+		     return (cdr (assq 'id release))))
       (setq data (discogs-query "releases" id)))
     (discogs-collect-tracklist data)))
 
 (defun discogs-collect-tracklist (data)
   (let ((tracks
-	 (loop for track across (cdr (assq 'tracklist data))
-	       unless (equal (cdr (assq 'type_ track)) "heading")
-	       collect (cons
-			(mapconcat
-			 'identity
-			 (loop for artist across (cdr (assq 'artists track))
-			       collect (discogs-clean-artist-name
-					(cdr (assq 'name artist))))
-			 ", ")
-			(cdr (assq 'title track))))))
+	 (cl-loop for track across (cdr (assq 'tracklist data))
+		  unless (equal (cdr (assq 'type_ track)) "heading")
+		  collect (cons
+			   (mapconcat
+			    'identity
+			    (cl-loop for artist
+				     across (cdr (assq 'artists track))
+				     collect (discogs-clean-artist-name
+					      (cdr (assq 'name artist))))
+			    ", ")
+			   (cdr (assq 'title track))))))
     (if (= (length (delete-duplicates
 		    (mapcar #'car tracks)
 		    :test #'equal))
@@ -124,8 +127,8 @@
 	;; If there's just one band, then return only track names.
 	(mapcar #'cdr tracks)
       ;; If there's more, return Band / Track.
-      (loop for elem in tracks
-	    collect (format "%s / %s" (car elem) (cdr elem))))))
+      (cl-loop for elem in tracks
+	       collect (format "%s / %s" (car elem) (cdr elem))))))
 
 (defun discogs-clean-artist-name (artist)
   (replace-regexp-in-string " +([0-9]+)$" "" artist))
@@ -137,27 +140,27 @@
   (setq artist (discogs-clean artist)
 	title (discogs-clean title))
   (let ((releases
-	 (loop for release across
-	       (cdr (assq 'results
-			  (discogs-query
-			   "database"
-			   (format "search?type=release&q=%s %s"
-				   (url-hexify-string artist)
-				   (url-hexify-string title))
-			   t)))
-	       when (equal (cdr (assq 'type release)) "release")
-	       collect release)))
+	 (cl-loop for release across
+		  (cdr (assq 'results
+			     (discogs-query
+			      "database"
+			      (format "search?type=release&q=%s %s"
+				      (url-hexify-string artist)
+				      (url-hexify-string title))
+			      t)))
+		  when (equal (cdr (assq 'type release)) "release")
+		  collect release)))
     (if (= (length releases) 1)
 	(discogs-collect-tracklist (car releases))
       (let* ((entries
-	      (loop for release in releases
-		    collect (cons
-			     (format "%s %s %s (%s)"
-				     (cdr (assq 'title release))
-				     (cdr (assq 'format release))
-				     (cdr (assq 'year release))
-				     (cdr (assq 'id release)))
-			     (cdr (assq 'id release)))))
+	      (cl-loop for release in releases
+		       collect (cons
+				(format "%s %s %s (%s)"
+					(cdr (assq 'title release))
+					(cdr (assq 'format release))
+					(cdr (assq 'year release))
+					(cdr (assq 'id release)))
+				(cdr (assq 'id release)))))
 	     (choice
 	      (completing-read "Choose release: " (mapcar #'car entries))))
 	(if (not choice)
