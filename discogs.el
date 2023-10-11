@@ -25,7 +25,6 @@
 
 ;;; Code:
 
-(require 'cl)
 (require 'json)
 
 (defvar discogs-consumer-key nil
@@ -63,7 +62,7 @@
 	  "database"
 	  (format "search?type=master&artist=%s&release_title=%s" artist title)
 	  t)))
-    (if (plusp (length (cdr (assoc 'results results))))
+    (if (cl-plusp (length (cdr (assoc 'results results))))
 	results
       ;; Rate-limit to the API limit.
       (sleep-for 1)
@@ -93,7 +92,7 @@
 	   return style))
 
 (defun discogs-find-tracklist (artist title)
-  (let* ((cl-search (cdr (assq 'results (discogs-search artist title))))
+  (let* ((search (cdr (assq 'results (discogs-search artist title))))
 	 (id
 	  (cl-loop for release across search
 		   when (equal (cdr (assq 'type release)) "master")
@@ -120,7 +119,7 @@
 					      (cdr (assq 'name artist))))
 			    ", ")
 			   (cdr (assq 'title track))))))
-    (if (= (length (delete-duplicates
+    (if (= (length (cl-delete-duplicates
 		    (mapcar #'car tracks)
 		    :test #'equal))
 	   1)
